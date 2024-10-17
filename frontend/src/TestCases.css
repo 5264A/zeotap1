@@ -1,0 +1,29 @@
+.TestCases {
+    margin-top: 20px;
+  }
+  
+  .test-button {
+    padding: 10px 20px;
+    background-color: #ff9800;
+    border: none;
+    color: white;
+    cursor: pointer;
+    border-radius: 4px;
+  }
+  
+  .test-button:hover {
+    background-color: #fb8c00;
+  }
+  
+  .test-results {
+    margin-top: 20px;
+  }
+  
+  .test-result {
+    margin: 20px;
+    padding: 10px;
+    border: 2px solid #ff9800;
+    border-radius: 4px;
+    background-color: #fff3e0;
+  }
+  
