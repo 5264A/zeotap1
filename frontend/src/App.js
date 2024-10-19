@@ -4,115 +4,112 @@ import Tree from 'react-d3-tree';
 import './App.css';
 
 function App() {
-  const [rule, setRule] = useState('');
-  const [rules, setRules] = useState([]);
-  const [data, setData] = useState('{}');
-  const [result, setResult] = useState(null);
-  const [error, setError] = useState('');
-  const [combinedAst, setCombinedAst] = useState(null);
+  const [inputRule, setInputRule] = useState('');
+  const [ruleList, setRuleList] = useState([]);
+  const [jsonData, setJsonData] = useState('{}');
+  const [evaluationResult, setEvaluationResult] = useState(null);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [finalAst, setFinalAst] = useState(null);
 
-  const createRule = async () => {
+  const handleRuleCreation = async () => {
     try {
-      if (rule.trim() === '') {
-        throw new Error('No rule provided');
+      if (inputRule.trim() === '') {
+        throw new Error('Please provide a rule');
       }
 
-      // Basic validation for rule format
-      const rulePattern = /^\s*([a-zA-Z_]\w*)\s*(>|<|=)\s*([\w\d]+)\s*$/;
-      if (!rulePattern.test(rule.trim())) {
-        throw new Error('Invalid rule format. Expected format: "field operator value"');
+      // Validate rule format
+      const ruleRegex = /^\s*([a-zA-Z_]\w*)\s*(>|<|=)\s*([\w\d]+)\s*$/;
+      if (!ruleRegex.test(inputRule.trim())) {
+        throw new Error('Invalid format. Use: "field operator value"');
       }
 
-      const response = await axios.post('http://localhost:5000/create_rule', { rule });
-      setRules([...rules, response.data.ast]);
-      setError('');
-    } catch (err) {
-      setError(err.response ? err.response.data.error : err.message);
+      const response = await axios.post('http://localhost:5000/create_rule', { rule: inputRule });
+      setRuleList([...ruleList, response.data.ast]);
+      setErrorMessage('');
+    } catch (error) {
+      setErrorMessage(error.response ? error.response.data.error : error.message);
     }
   };
 
-  const combineRules = async () => {
+  const handleRuleCombination = async () => {
     try {
-      if (rules.length < 2) {
-        throw new Error('At least two rules are required to combine');
+      if (ruleList.length < 2) {
+        throw new Error('You need at least two rules to combine');
       }
-      const response = await axios.post('http://localhost:5000/combine_rules', { rules });
-      setCombinedAst(response.data.ast);
-      setError('');
-    } catch (err) {
-      setError(err.response ? err.response.data.error : 'Server error');
+      const response = await axios.post('http://localhost:5000/combine_rules', { rules: ruleList });
+      setFinalAst(response.data.ast);
+      setErrorMessage('');
+    } catch (error) {
+      setErrorMessage(error.response ? error.response.data.error : 'An error occurred on the server');
     }
   };
 
-  const evaluateRule = async () => {
+  const handleEvaluation = async () => {
     try {
-      if (!combinedAst || !data || typeof JSON.parse(data) !== 'object') {
-        throw new Error('Invalid rule or data');
+      if (!finalAst || !jsonData || typeof JSON.parse(jsonData) !== 'object') {
+        throw new Error('Invalid AST or data provided');
       }
-      const response = await axios.post('http://localhost:5000/evaluate_rule', { ast: combinedAst, data: JSON.parse(data) });
-      setResult(response.data.result);
-      setError('');
-    } catch (err) {
-      setError(err.response ? err.response.data.error : 'Server error');
+      const response = await axios.post('http://localhost:5000/evaluate_rule', { ast: finalAst, data: JSON.parse(jsonData) });
+      setEvaluationResult(response.data.result);
+      setErrorMessage('');
+    } catch (error) {
+      setErrorMessage(error.response ? error.response.data.error : 'An error occurred on the server');
     }
   };
 
-  const handleRuleChange = (e) => setRule(e.target.value);
-  const handleDataChange = (e) => setData(e.target.value);
+  const handleInputChange = (e) => setInputRule(e.target.value);
+  const handleJsonChange = (e) => setJsonData(e.target.value);
 
-  const renderTree = (ast) => {
-    const transformAstToTreeData = (node) => {
-      if (!node) return null;
-      if (node.type === 'operand') {
-        return { name: `${node.field} ${node.operator} ${node.value}` };
-      }
-      return {
-        name: node.operator,
-        children: [transformAstToTreeData(node.left), transformAstToTreeData(node.right)].filter(Boolean),
-      };
+  const convertAstToTreeData = (astNode) => {
+    if (!astNode) return null;
+    if (astNode.type === 'operand') {
+      return { name: `${astNode.field} ${astNode.operator} ${astNode.value}` };
+    }
+    return {
+      name: astNode.operator,
+      children: [convertAstToTreeData(astNode.left), convertAstToTreeData(astNode.right)].filter(Boolean),
     };
-    return transformAstToTreeData(ast);
   };
 
   return (
     <div className="App">
       <header className="App-header">
-        <h1>Rule Engine</h1>
+        <h1>Rule Engine Application</h1>
         <div className="form-group">
           <input
             type="text"
-            value={rule}
-            onChange={handleRuleChange}
-            placeholder="Enter rule"
+            value={inputRule}
+            onChange={handleInputChange}
+            placeholder="Type your rule here"
             className="form-input"
           />
-          <button onClick={createRule} className="form-button">Create Rule</button>
+          <button onClick={handleRuleCreation} className="form-button">Create Rule</button>
         </div>
         <div className="form-group">
-          <button onClick={combineRules} className="form-button">Combine Rules</button>
+          <button onClick={handleRuleCombination} className="form-button">Combine Rules</button>
         </div>
         <div className="form-group">
           <textarea
-            value={data}
-            onChange={handleDataChange}
-            placeholder="Enter JSON data"
+            value={jsonData}
+            onChange={handleJsonChange}
+            placeholder="Input JSON data"
             className="form-textarea"
           />
-          <button onClick={evaluateRule} className="form-button">Evaluate Rule</button>
+          <button onClick={handleEvaluation} className="form-button">Evaluate Rule</button>
         </div>
-        {result !== null && <div className="result">Result: {result.toString()}</div>}
-        {error && <div className="error">{error}</div>}
+        {evaluationResult !== null && <div className="result">Result: {evaluationResult.toString()}</div>}
+        {errorMessage && <div className="error">{errorMessage}</div>}
         <div className="ast-display">
-          <h2>Rules AST</h2>
-          {rules.length > 0 && (
+          <h2>Current Rules AST</h2>
+          {ruleList.length > 0 && (
             <div style={{ width: '100%', height: '500px' }}>
-              <Tree data={renderTree(rules[rules.length - 1])} />
+              <Tree data={convertAstToTreeData(ruleList[ruleList.length - 1])} />
             </div>
           )}
           <h2>Combined AST</h2>
-          {combinedAst && (
+          {finalAst && (
             <div style={{ width: '100%', height: '500px' }}>
-              <Tree data={renderTree(combinedAst)} />
+              <Tree data={convertAstToTreeData(finalAst)} />
             </div>
           )}
         </div>

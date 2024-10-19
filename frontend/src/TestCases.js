@@ -3,25 +3,26 @@ import axios from 'axios';
 import './TestCases.css';
 
 function TestCases() {
-  const [testResults, setTestResults] = useState([]);
+  const [results, setResults] = useState([]);
 
-  const testCases = [
+  
+  const tests = [
     {
-      description: 'Create individual rules and verify their AST representation',
-      request: { rule: '((age > 30 AND department == "Sales") OR (age < 25 AND department == "Marketing")) AND (salary > 50000 OR experience > 5)' },
+      description: 'Generate AST for individual rules',
+      payload: { rule: '((age > 30 AND department == "Sales") OR (age < 25 AND department == "Marketing")) AND (salary > 50000 OR experience > 5)' },
       endpoint: '/create_rule',
     },
     {
-      description: 'Combine rules and ensure the resulting AST reflects the combined logic',
-      request: { rules: [
+      description: 'Merge rules and verify AST reflects combined logic',
+      payload: { rules: [
         '((age > 30 AND department == "Sales") OR (age < 25 AND department == "Marketing")) AND (salary > 50000 OR experience > 5)',
         '((age > 30 AND department == "Marketing")) AND (salary > 20000 OR experience > 5)'
       ] },
       endpoint: '/combine_rules',
     },
     {
-      description: 'Evaluate rule for different scenarios',
-      request: { 
+      description: 'Evaluate rule logic with various data sets',
+      payload: { 
         ast: {
           type: 'operator',
           left: {
@@ -39,27 +40,28 @@ function TestCases() {
     },
   ];
 
-  const runTests = async () => {
-    const results = [];
-    for (const testCase of testCases) {
+  // Function to execute the test cases
+  const executeTests = async () => {
+    const testResults = [];
+    for (const test of tests) {
       try {
-        const response = await axios.post(`http://localhost:5000${testCase.endpoint}`, testCase.request);
-        results.push({ description: testCase.description, result: JSON.stringify(response.data, null, 2) });
-      } catch (err) {
-        results.push({ description: testCase.description, result: err.response.data.error });
+        const response = await axios.post(`http://localhost:5000${test.endpoint}`, test.payload);
+        testResults.push({ description: test.description, output: JSON.stringify(response.data, null, 2) });
+      } catch (error) {
+        testResults.push({ description: test.description, output: error.response ? error.response.data.error : 'Error during request' });
       }
     }
-    setTestResults(results);
+    setResults(testResults);
   };
 
   return (
     <div className="TestCases">
-      <button onClick={runTests} className="test-button">Run Test Cases</button>
+      <button onClick={executeTests} className="test-button">Run Tests</button>
       <div className="test-results">
-        {testResults.map((result, index) => (
+        {results.map((result, index) => (
           <div key={index} className="test-result">
             <h4>{result.description}</h4>
-            <pre>{result.result}</pre>
+            <pre>{result.output}</pre>
           </div>
         ))}
       </div>
