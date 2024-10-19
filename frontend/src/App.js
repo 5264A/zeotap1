@@ -73,7 +73,9 @@ function App() {
 
   const convertAstToTreeData = (astNode) => {
     if (!astNode) return null;
+    
     if (astNode.type === 'operand') {
+
       return { name: `${astNode.field} ${astNode.operator} ${astNode.value}` };
     }
     return {
@@ -92,7 +94,7 @@ function App() {
         <div className="form-group">
           <input
             type="text"
-            
+
             value={inputRule}
             onChange={handleInputChange}
 
