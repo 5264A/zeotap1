@@ -6,7 +6,7 @@ import './App.css';
 function App() {
   const [inputRule, setInputRule] = useState('');
   const [ruleList, setRuleList] = useState([]);
-  
+
   const [jsonData, setJsonData] = useState('{}');
   const [evaluationResult, setEvaluationResult] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
@@ -20,9 +20,11 @@ function App() {
 
       }
 
-      // Validate rule format
+      
       const ruleRegex = /^\s*([a-zA-Z_]\w*)\s*(>|<|=)\s*([\w\d]+)\s*$/;
+
       if (!ruleRegex.test(inputRule.trim())) {
+
         throw new Error('Invalid format. Use: "field operator value"');
       }
 
@@ -90,21 +92,26 @@ function App() {
         <div className="form-group">
           <input
             type="text"
+            
             value={inputRule}
             onChange={handleInputChange}
+
             placeholder="Type your rule here"
             className="form-input"
+
           />
           <button onClick={handleRuleCreation} className="form-button">Create Rule</button>
         </div>
         <div className="form-group">
           <button onClick={handleRuleCombination} className="form-button">Combine Rules</button>
+
         </div>
         <div className="form-group">
           <textarea
             value={jsonData}
             onChange={handleJsonChange}
             placeholder="Input JSON data"
+
             className="form-textarea"
           />
           <button onClick={handleEvaluation} className="form-button">Evaluate Rule</button>
@@ -113,6 +120,7 @@ function App() {
         {errorMessage && <div className="error">{errorMessage}</div>}
         <div className="ast-display">
           <h2>Current Rules AST</h2>
+
           {ruleList.length > 0 && (
             <div style={{ width: '100%', height: '500px' }}>
               <Tree data={convertAstToTreeData(ruleList[ruleList.length - 1])} />
@@ -122,6 +130,7 @@ function App() {
           {finalAst && (
             <div style={{ width: '100%', height: '500px' }}>
               <Tree data={convertAstToTreeData(finalAst)} />
+
             </div>
           )}
         </div>
