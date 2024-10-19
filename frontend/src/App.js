@@ -6,6 +6,7 @@ import './App.css';
 function App() {
   const [inputRule, setInputRule] = useState('');
   const [ruleList, setRuleList] = useState([]);
+  
   const [jsonData, setJsonData] = useState('{}');
   const [evaluationResult, setEvaluationResult] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
@@ -14,7 +15,9 @@ function App() {
   const handleRuleCreation = async () => {
     try {
       if (inputRule.trim() === '') {
+
         throw new Error('Please provide a rule');
+
       }
 
       // Validate rule format
@@ -24,6 +27,7 @@ function App() {
       }
 
       const response = await axios.post('http://localhost:5000/create_rule', { rule: inputRule });
+
       setRuleList([...ruleList, response.data.ast]);
       setErrorMessage('');
     } catch (error) {
@@ -34,17 +38,22 @@ function App() {
   const handleRuleCombination = async () => {
     try {
       if (ruleList.length < 2) {
+
         throw new Error('You need at least two rules to combine');
+
       }
+
       const response = await axios.post('http://localhost:5000/combine_rules', { rules: ruleList });
       setFinalAst(response.data.ast);
       setErrorMessage('');
     } catch (error) {
       setErrorMessage(error.response ? error.response.data.error : 'An error occurred on the server');
+
     }
   };
 
   const handleEvaluation = async () => {
+
     try {
       if (!finalAst || !jsonData || typeof JSON.parse(jsonData) !== 'object') {
         throw new Error('Invalid AST or data provided');
@@ -73,8 +82,11 @@ function App() {
 
   return (
     <div className="App">
+      
       <header className="App-header">
-        <h1>Rule Engine Application</h1>
+        
+        <h1>Rule Engine Web Application</h1>
+        
         <div className="form-group">
           <input
             type="text"
